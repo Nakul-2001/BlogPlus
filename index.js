@@ -10,14 +10,16 @@ import userRoute from "./Routes/user.js"
 import blogRoute from "./Routes/blog.js"
 import authRoute from "./Routes/auth.js"
 import categoryRoute from './Routes/category.js'
+import uploadRoute from './Routes/uploadRoute.js'
 
 const app = express();
 
 dotenv.config();
 app.use(cors());
 app.use(express.json());
+
 const __dirname = path.resolve();
-app.use('/images',express.static(path.join(__dirname,'/images')));
+app.use(express.static(path.join(__dirname,'public')));
 
 mongoose
   .connect(process.env.MONGO_URL)
@@ -25,18 +27,8 @@ mongoose
   .catch(() => console.log("Error in connecting Db"));
 
 
-const storage = multer.diskStorage({
-  destination:(req,file,cb) => {
-    cb(null,"Images");
-  },
-  filename:(req,file,cb) => {
-    cb(null,req.body.name);
-  },
-});
-
-const upload = multer({storage:storage});
-app.post('/api/upload',upload.single('file'),(req,res)=>{
-  res.status(200).json("File has been uploaded");
+const upload = multer({
+  storage:multer.diskStorage({}),
 });
 
 
@@ -44,6 +36,7 @@ app.use('/api/auth',authRoute);
 app.use('/api/user',userRoute);
 app.use('/api/blog',blogRoute);
 app.use('/api/category',categoryRoute);
+app.use('/api/upload',upload.single('file'),uploadRoute);
 
 app.listen(process.env.PORT, () => {
   console.log(`app is working at port 3000`);
